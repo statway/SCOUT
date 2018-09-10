@@ -5,7 +5,11 @@ from sklearn import manifold, decomposition
 from sklearn import cluster, mixture
 from sklearn.metrics.pairwise import pairwise_distances
 
+<<<<<<< HEAD
 from scipy import sparse,linalg,spatial
+=======
+from scipy import sparse,linalg
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 from scipy.spatial import distance
 
 import itertools
@@ -17,6 +21,7 @@ from mpl_toolkits.mplot3d import Axes3D
 plt.style.use(["seaborn-darkgrid", "seaborn-colorblind", "seaborn-notebook"])
 
 
+<<<<<<< HEAD
 def get_landmark_dists(landmark_i0, landmark_i1, landmark_i2):
     """
     Get the distances between landmark i and landmark i-1,i+1.
@@ -28,10 +33,23 @@ def get_landmark_dists(landmark_i0, landmark_i1, landmark_i2):
     # spatial.distance.cdist
     dist_a = pairwise_distances(landmark_i0, landmark_i1)
     dist_b = pairwise_distances(landmark_i1, landmark_i2)
+=======
+def get_centroid_dists(centroid_i0, centroid_i1, centroid_i2):
+    """
+    Get the distances between landmark i and landmark i-1,i+1.
+    :param centroid_i0: position of landmark i-1;
+    :param centroid_i1: position of landmark i;
+    :param centroid_i2: position of landmark i+1;
+    :return: distances between landmark i and landmark i-1,i+1.
+    """
+    dist_a = pairwise_distances(centroid_i0, centroid_i1)
+    dist_b = pairwise_distances(centroid_i1, centroid_i2)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
     return dist_a, dist_b
 
 
+<<<<<<< HEAD
 def get_cell_dists(cluster_values, landmark_i0, landmark_i2):
     """
     Get distances between cluster i and landmark i-1,i+1.
@@ -43,6 +61,18 @@ def get_cell_dists(cluster_values, landmark_i0, landmark_i2):
     # spatial.distance.cdist
     dist_cell_i0 = pairwise_distances(cluster_values, landmark_i0)
     dist_cell_i2 = pairwise_distances(cluster_values, landmark_i2)
+=======
+def get_cell_dists(cluster_values, centroid_i0, centroid_i2):
+    """
+    Get distances between cluster i and landmark i-1,i+1.
+    :param cluster_values: positions of all points for cluster i
+    :param centroid_i0: position of landmark i-1;
+    :param centroid_i2: position of landmark i+1;
+    :return: distances between cluster i and landmark i-1,i+1.
+    """
+    dist_cell_i0 = pairwise_distances(cluster_values, centroid_i0)
+    dist_cell_i2 = pairwise_distances(cluster_values, centroid_i2)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
     return dist_cell_i0, dist_cell_i2
 
 
@@ -59,11 +89,16 @@ class SCOUT():
         self.data = data
         self.stages = stages
 
+<<<<<<< HEAD
         self.landmarks = None
         self.labels = None
         self.traj_sort_ind = None
         self.landmark_indices = None
         self.landmarks_sort = None
+=======
+        self.centroids = None
+        self.labels = None
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
         self.Tcsr = None
         self.edges = None
@@ -106,32 +141,49 @@ class SCOUT():
 
         return V
 
+<<<<<<< HEAD
     def cluster_landmarks(self, V, method='GMM', nclust=None, cov = 'tied',rand_seed=6, traj_branch = True):
+=======
+    def clustering(self, V, method='kmeans', nclust=None, cov = 'tied',rand_seed=6, traj_branch = True):
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
         """
         :param V: the data for clustering.
         :param method: selected method of clustering.
         :param nclust: number of clusters.
         :param cov: only used for method GMM. Covariance type contains 'full','tied','diag',and 'spherical'.
         :param rand_seed: seed used by the random number generator.
+<<<<<<< HEAD
         :return: landmarks and labels of the data.
+=======
+        :return: centroids and labels of the data.
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
         """
 
         # http://scikit-learn.org/stable/modules/clustering.html
         if method == 'kmeans' or method == 'Kmeans':
             print("Clustering with K-Means")
             kmeans = cluster.KMeans(n_clusters=nclust, random_state=rand_seed).fit(V)
+<<<<<<< HEAD
             centers = kmeans.cluster_centers_
+=======
+            centroids = kmeans.cluster_centers_
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             labels = kmeans.labels_
 
         if method == 'meanshift':
             print("Clustering with meanshift")
             ms = cluster.MeanShift().fit(V)
+<<<<<<< HEAD
             centers = ms.cluster_centers_
+=======
+            centroids = ms.cluster_centers_
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             labels = ms.labels_
 
         # http://scikit-learn.org/stable/modules/mixture.html
         if method == 'gmm' or method == 'GMM':
             print("Clustering with Gaussian Mixture")
+<<<<<<< HEAD
             if nclust == None:
                 lowest_bic = np.infty
                 bic = []
@@ -234,6 +286,29 @@ class SCOUT():
 
         landmarks = self.landmarks
         center_dist = distance.squareform(distance.pdist(landmarks))
+=======
+            gmm = mixture.GaussianMixture(n_components=nclust, covariance_type= cov ,random_state=rand_seed).fit(V)
+            centroids = gmm.means_
+            labels = gmm.predict(V)
+
+        self.centroids = centroids
+        self.labels = labels
+
+        if traj_branch == True:
+            self.get_MST()
+            self.traj_centroids()
+
+        return centroids, labels
+
+    def get_MST(self):
+        """
+        Minimum spanning tree of centroids.
+        :return: MST array and edges.
+        """
+
+        centroids = self.centroids
+        center_dist = distance.squareform(distance.pdist(centroids))
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
         matri = sparse.csr_matrix(center_dist)
         Tcsr = sparse.csgraph.minimum_spanning_tree(matri).toarray()
         edges = np.transpose(np.nonzero(Tcsr))
@@ -241,6 +316,7 @@ class SCOUT():
         self.Tcsr = Tcsr
         self.edges = edges
 
+<<<<<<< HEAD
 
         landmarks_count_dict = Counter(edges.flatten()) # count numbers of landmarks
         landmarks_ind_count1 = [ind for ind, count in landmarks_count_dict.items() if count == 1] # get vertex indices of MST
@@ -301,6 +377,36 @@ class SCOUT():
         self.landmarks_sort = landmarks[traj_sort_ind,:]
         traj_branch = True
         return sorted(traj_sort_ind)
+=======
+        return Tcsr, edges
+
+    def traj_centroids(self):
+        """
+        :return: all branches of centroids generated by MST.
+        """
+
+        from collections import Counter
+        import networkx as nx
+
+        edge_dict = Counter(self.edges.flatten())
+        edge_count1 = [edge for edge, count in edge_dict.items() if count == 1]
+
+        traj_centroids = []
+        len_edge_count1 = len(edge_count1)
+
+        G = nx.Graph(self.Tcsr)
+
+        for i in (range(len_edge_count1 - 1)):
+            for j in range(i + 1, len_edge_count1):
+                path = nx.shortest_path(G, source=edge_count1[i], target=edge_count1[j])
+                traj_centroids.append(path)
+
+        traj_centroids.sort(key=len, reverse=True)
+
+        print("branches:\n",traj_centroids)
+
+        return traj_centroids
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
     def get_vertex(self, V, traj_branch, method = '1'):
         """
@@ -311,14 +417,20 @@ class SCOUT():
                '2' : select the cell based on projection.
         :return: start cell and end cell of the branch.
         """
+<<<<<<< HEAD
         # print("traj_branch:",traj_branch)
         # print("landmarks",self.landmarks)
 
         landmark_order = np.asarray([self.landmarks[order] for order in traj_branch])
+=======
+
+        centroid_order = np.asarray([self.centroids[order] for order in traj_branch])
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
         cluster_start_indices = [i for i, x in enumerate(self.labels) if x == traj_branch[0]]
         cluster_start_values = V[cluster_start_indices, :]
 
+<<<<<<< HEAD
         landmark_1 = np.array(landmark_order[0, :]).reshape((1, -1))
         landmark_2 = np.array(landmark_order[1, :]).reshape((1, -1))
 
@@ -326,13 +438,28 @@ class SCOUT():
 
             dist_cell_c1 = pairwise_distances(cluster_start_values, landmark_1)
             dist_cell_c2 = pairwise_distances(cluster_start_values, landmark_2)
+=======
+        centroid_1 = np.array(centroid_order[0, :]).reshape((1, -1))
+        centroid_2 = np.array(centroid_order[1, :]).reshape((1, -1))
+
+        if method == '1':
+
+            dist_cell_c1 = pairwise_distances(cluster_start_values, centroid_1)
+            dist_cell_c2 = pairwise_distances(cluster_start_values, centroid_2)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             dist_cell_max = dist_cell_c1 + 2 * dist_cell_c2
 
         elif method == '2':
 
+<<<<<<< HEAD
             landmark_vec = landmark_1 - landmark_2
             cluster_start_values = cluster_start_values - landmark_2
             dist_cell_max = cluster_start_values.dot(landmark_vec.transpose())
+=======
+            centroid_vec = centroid_1 - centroid_2
+            cluster_start_values = cluster_start_values - centroid_2
+            dist_cell_max = cluster_start_values.dot(centroid_vec.transpose())
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
         start_cell_index = cluster_start_indices[np.argmax(dist_cell_max)]
         branch_start_cell = np.array(V[start_cell_index, :]).reshape((1, -1))
@@ -340,6 +467,7 @@ class SCOUT():
         cluster_end_indices = [i for i, x in enumerate(self.labels) if x == traj_branch[-1]]
         cluster_end_values = V[cluster_end_indices, :]
 
+<<<<<<< HEAD
         landmark_1 = np.array(landmark_order[-1, :]).reshape((1, -1))
         landmark_2 = np.array(landmark_order[-2, :]).reshape((1, -1))
 
@@ -347,13 +475,28 @@ class SCOUT():
 
             dist_cell_c1 = pairwise_distances(cluster_end_values, landmark_1)
             dist_cell_c2 = pairwise_distances(cluster_end_values, landmark_2)
+=======
+        centroid_1 = np.array(centroid_order[-1, :]).reshape((1, -1))
+        centroid_2 = np.array(centroid_order[-2, :]).reshape((1, -1))
+
+        if method == '1':
+
+            dist_cell_c1 = pairwise_distances(cluster_end_values, centroid_1)
+            dist_cell_c2 = pairwise_distances(cluster_end_values, centroid_2)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             dist_cell_max = dist_cell_c1 + dist_cell_c2
 
         elif method == '2':
 
+<<<<<<< HEAD
             landmark_vec = landmark_1 - landmark_2
             cluster_end_values = cluster_end_values - landmark_2
             dist_cell_max = cluster_end_values.dot(landmark_vec.transpose())
+=======
+            centroid_vec = centroid_1 - centroid_2
+            cluster_end_values = cluster_end_values - centroid_2
+            dist_cell_max = cluster_end_values.dot(centroid_vec.transpose())
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
         end_cell_index = cluster_end_indices[np.argmax(dist_cell_max)]
         branch_end_cell = np.array(V[end_cell_index, :]).reshape((1, -1))
@@ -376,6 +519,7 @@ class SCOUT():
         cell_scores = np.zeros(len(V))
         orders = []
 
+<<<<<<< HEAD
         traj_sort_ind = self.traj_sort_ind
 
         # print("traj_sort_ind",traj_sort_ind)
@@ -387,6 +531,8 @@ class SCOUT():
         # print(traj_new_indices)
         
         traj_branches = traj_new_indices
+=======
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
         # adjust edges
         edges = []
         for branch in traj_branches:
@@ -397,14 +543,22 @@ class SCOUT():
         edges = [list(x) for x in fset]
         self.edges = edges
 
+<<<<<<< HEAD
         # print("error")
 
+=======
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
         for branch in traj_branches:
 
             branch_start_cell, branch_end_cell = self.get_vertex(V, branch, method='1')
 
+<<<<<<< HEAD
             landmark_order = np.asarray([self.landmarks[order] for order in branch])       # order landmarks
             landmark_order = np.vstack((branch_start_cell,landmark_order,branch_end_cell)) # add start_cell and branch_end_cell
+=======
+            centroid_order = np.asarray([self.centroids[order] for order in branch])       # order centroids
+            landmark_order = np.vstack((branch_start_cell,centroid_order,branch_end_cell)) # add start_cell and branch_end_cell
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
             branch_indices = [i for i, x in enumerate(self.labels) if x in branch]
             branch_labels = [x for i, x in enumerate(self.labels) if x in branch]
@@ -412,7 +566,11 @@ class SCOUT():
 
             landmark_mat = distance.squareform(distance.pdist(landmark_order))
 
+<<<<<<< HEAD
             # cells_mat = pairwise_distances(cluster_values,landmark_order)
+=======
+            # cells_mat = pairwise_distances(cluster_values,centroid_order)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             cells_mat = distance.cdist(branch_values, landmark_order)
 
             num_cells = len(branch_values)
@@ -478,6 +636,7 @@ class SCOUT():
                     clust_indices = [i for i, x in enumerate(self.labels) if x == clust]
                     clust_values = V[clust_indices, :]
 
+<<<<<<< HEAD
                     # landmark i
                     landmark_i1 = np.array(landmark_order[ind, :]).reshape((1, -1))
 
@@ -486,6 +645,21 @@ class SCOUT():
 
                     # find the nearest cell to the landmark_i1
                     landmark_order[ind, :] = clust_values[np.argmin(dist_cell_i1)]
+=======
+                    # centroid i
+                    centroid_i1 = np.array(centroid_order[ind, :]).reshape((1, -1))
+
+                    # dist between centroid i and cluster
+                    dist_cell_i1 = pairwise_distances(clust_values, centroid_i1)
+
+                    # find the nearest cell to the centroid_i1
+                    centroid_order[ind, :] = clust_values[np.argmin(dist_cell_i1)]
+
+                    # center = centroid_order[ind, :]
+                    # for i, value in enumerate(V):
+                    #     if np.array_equal(center,value):
+                    #         print(i)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
                 for ind, clust in enumerate(branch):
 
@@ -494,6 +668,7 @@ class SCOUT():
                     branch_clust_indices = [i for i, x in enumerate(branch_labels) if x == clust]
                     clust_values = V[clust_indices, :]
 
+<<<<<<< HEAD
                     # landmark i
                     landmark_i1 = np.array(landmark_order[ind, :]).reshape((1, -1))
 
@@ -515,6 +690,29 @@ class SCOUT():
 
                     # dist between landmarks
                     dist_a, dist_b = get_landmark_dists(landmark_i0, landmark_i1, landmark_i2)
+=======
+                    # centroid i
+                    centroid_i1 = np.array(centroid_order[ind, :]).reshape((1, -1))
+
+                    # centroid i-1 and i+1
+                    if ind == 0:
+                        centroid_i0 = branch_start_cell
+                        centroid_i2 = np.array(centroid_order[ind + 1, :]).reshape((1, -1))
+
+                    elif 0 < ind < (len(branch) - 1):
+                        centroid_i0 = np.array(centroid_order[ind - 1, :]).reshape((1, -1))
+                        centroid_i2 = np.array(centroid_order[ind + 1, :]).reshape((1, -1))
+
+                    elif ind == (len(branch) - 1):
+                        centroid_i0 = np.array(centroid_order[ind - 1, :]).reshape((1, -1))
+                        centroid_i2 = branch_end_cell
+
+                    # dist between cell and centroid i-1,i+1
+                    dist_cell_i0, dist_cell_i2 = get_cell_dists(clust_values, centroid_i0,  centroid_i2)
+
+                    # dist between centroids
+                    dist_a, dist_b = get_centroid_dists(centroid_i0, centroid_i1, centroid_i2)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
                     dist_cell_i02 = dist_cell_i0 + dist_cell_i2
                     dist_ab = dist_a + dist_b
@@ -539,6 +737,7 @@ class SCOUT():
 
         if V.shape[1] < len(dims):
             raise Exception('The number of dimensions for plots should be no greater than dimensions for embedding space.')
+<<<<<<< HEAD
         
         landmarks = self.landmarks
         traj_sort_ind = self.traj_sort_ind 
@@ -548,21 +747,39 @@ class SCOUT():
             # plt.axes().set_aspect('equal', 'datalim')
             plt.gca().set_aspect('equal', adjustable='box')
 
+=======
+
+        fig = plt.figure(figsize=(25, 20))
+
+        if len(dims) == 2:
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             if V.shape[1] > 2:
                 print("When the number of embedding space dimensions is more than 3, you could set 3D plot, e.g. dims = [0,1,2]")
 
             if self.labels is not None:
+<<<<<<< HEAD
                 plt.scatter(V[:, dims[0]], V[:, dims[1]], c=np.array(self.labels), cmap='jet',s=30)      
                 # print(traj_sort_ind)
                 plt.scatter(landmarks[:, dims[0]], landmarks[:, dims[1]], marker='o', s=100)
                 for index, landmark in enumerate(landmarks[traj_sort_ind,:]):
                     plt.annotate(index, xy=(landmark[dims[0]], landmark[dims[1]]), fontsize=15)
                     # plt.annotate(index, xy=(landmark[dims[0]], landmark[dims[1]]),fontsize=30)
+=======
+                plt.scatter(V[:, dims[0]], V[:, dims[1]], c=np.array(self.labels), cmap='jet')
+                centroids = self.centroids
+                plt.scatter(centroids[:, dims[0]], centroids[:, dims[1]], marker='o', s=100)
+                for index, centroid in enumerate(centroids):
+                    plt.annotate(index, xy=(centroid[dims[0]], centroid[dims[1]]), fontsize=30)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
                 if self.edges is not None:
                     for edge in self.edges:
                         i, j = edge
+<<<<<<< HEAD
                         plt.plot([landmarks[i, dims[0]], landmarks[j, dims[0]]], [landmarks[i, dims[1]], landmarks[j, dims[1]]], linewidth=0.2,
+=======
+                        plt.plot([centroids[i, dims[0]], centroids[j, dims[0]]], [centroids[i, dims[1]], centroids[j, dims[1]]], linewidth=0.2,
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
                                  c='r')
 
             elif self.stages is not None:
@@ -586,6 +803,7 @@ class SCOUT():
 
         elif len(dims) == 3:
 
+<<<<<<< HEAD
             # ax = fig.add_subplot(111, projection='3d')
             # ax =  plt.axes(projection='3d',figsize=(25,20))
             fig = plt.figure(figsize=(25,20))
@@ -601,12 +819,27 @@ class SCOUT():
                     ax.text(landmark[dims[0]], landmark[dims[1]], landmark[dims[2]], '%s' % (str(index)), size=30)
                 # for index in range(len(landmarks)):
                 #     ax.text(landmarks[index, dims[0]], landmarks[index, dims[1]], landmarks[index, dims[2]], '%s' % (str(index)), size=30)
+=======
+            ax = fig.add_subplot(111, projection='3d')
+
+            if self.labels is not None:
+                ax.scatter(V[:, dims[0]], V[:, dims[1]], V[:, dims[2]], c=np.array(self.labels), cmap='jet')
+                centroids = self.centroids
+                ax.scatter(centroids[:, dims[0]], centroids[:, dims[1]], centroids[:, dims[2]], marker='o', s=100)
+                for index in range(len(centroids)):
+                    ax.text(centroids[index, dims[0]], centroids[index, dims[1]], centroids[index, dims[2]], '%s' % (str(index)), size=30)
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
                 if self.edges is not None:
                     for edge in self.edges:
                         i, j = edge
+<<<<<<< HEAD
                         ax.plot([landmarks[i, dims[0]], landmarks[j, dims[0]]], [landmarks[i, dims[1]], landmarks[j, dims[1]]],
                                 [landmarks[i, dims[2]], landmarks[j, dims[2]]], linewidth=0.2, c='r')
+=======
+                        ax.plot([centroids[i, dims[0]], centroids[j, dims[0]]], [centroids[i, dims[1]], centroids[j, dims[1]]],
+                                [centroids[i, dims[2]], centroids[j, dims[2]]], linewidth=0.2, c='r')
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
             elif self.stages is not None:
                 time_stage = sorted(set(self.stages))
@@ -632,6 +865,10 @@ class SCOUT():
 
             else:
                 ax.scatter(V[:, dims[0]], V[:, dims[1]], V[:, dims[2]])
+<<<<<<< HEAD
+=======
+
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
         plt.show()
 
     def plotT(self, V, cell_scores, dims = [0,1], plotlandmark = True):
@@ -639,29 +876,47 @@ class SCOUT():
         Plot the inferred trajectory in the embedding structure of the data.
         """
 
+<<<<<<< HEAD
         if len(dims) == 2:
             fig = plt.figure(figsize=(25, 20))
+=======
+        fig = plt.figure(figsize=(25, 20))
+        if len(dims) == 2:
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             if V.shape[1] > 2:
                 print("When the number of embedding space dimensions is more than 3, you could set 3D plot, e.g. dims = [0,1,2]")
 
             p = plt.scatter(V[:, dims[0]], V[:, dims[1]], c=cell_scores, cmap='jet')
 
             if plotlandmark == True:
+<<<<<<< HEAD
                 landmarks = self.landmarks
                 plt.scatter(landmarks[:, dims[0]], landmarks[:, dims[1]], marker='o', s=100)
 
                 for edge in self.edges:
                     i, j = edge
                     plt.plot([landmarks[i, dims[0]], landmarks[j, dims[0]]], [landmarks[i, dims[1]], landmarks[j, dims[1]]], c='r')
+=======
+                centroids = self.centroids
+                plt.scatter(centroids[:, dims[0]], centroids[:, dims[1]], marker='o', s=100)
+
+                for edge in self.edges:
+                    i, j = edge
+                    plt.plot([centroids[i, dims[0]], centroids[j, dims[0]]], [centroids[i, dims[1]], centroids[j, dims[1]]], c='r')
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
 
             plt.colorbar(p)
 
         elif len(dims) ==3:
+<<<<<<< HEAD
             # ax = fig.add_subplot(111, projection='3d')
             # ax =  plt.axes(projection='3d')
             fig = plt.figure(figsize=(25,20))
             ax = fig.gca(projection='3d')
 
+=======
+            ax = fig.add_subplot(111, projection='3d')
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             p = ax.scatter(V[:, dims[0]], V[:, dims[1]], V[:, dims[2]], c=cell_scores, cmap='jet')
 
             ax.set_xticklabels([])
@@ -673,6 +928,7 @@ class SCOUT():
             ax.set_zlabel('D' + str(dims[2]), fontsize=15, fontweight='bold')
 
             if plotlandmark == True:
+<<<<<<< HEAD
                 landmarks = self.landmarks
                 ax.scatter(landmarks[:, dims[0]], landmarks[:, dims[1]], landmarks[:, dims[2]], marker='o', s=100)
 
@@ -680,6 +936,15 @@ class SCOUT():
                     i, j = edge
                     ax.plot([landmarks[i, dims[0]], landmarks[j, dims[0]]], [landmarks[i, dims[1]], landmarks[j, dims[1]]],
                             [landmarks[i, dims[2]], landmarks[j, dims[2]]], c='r')
+=======
+                centroids = self.centroids
+                ax.scatter(centroids[:, dims[0]], centroids[:, dims[1]], centroids[:, dims[2]], marker='o', s=100)
+
+                for edge in self.edges:
+                    i, j = edge
+                    ax.plot([centroids[i, dims[0]], centroids[j, dims[0]]], [centroids[i, dims[1]], centroids[j, dims[1]]],
+                            [centroids[i, dims[2]], centroids[j, dims[2]]], c='r')
+>>>>>>> db71ad25d247a319bb4c413710b37853ab6bb1af
             plt.colorbar(p)
 
         plt.show()
